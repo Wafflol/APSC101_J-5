@@ -12,6 +12,7 @@ int toggle = 1;
 long timeSinceToggle = 10000;
 bool alreadyUp = true;
 long timeSinceUp = 10000;
+int minDist = 4;
 
 void setup() {
   // put your setup code here, to run once:
@@ -24,16 +25,22 @@ void setup() {
 }
 
 void loop() {
+  //sends ultrasonic signal
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigPin, LOW);
+
+  //calculates distance using signal
   duration = pulseIn(echoPin, HIGH);
   distance = duration * 0.034 / 2;
-  //timeSinceUp does not work im shooting myself
-  if(distance < 4 && millis() - timeSinceToggle > 4000 && millis() - timeSinceUp > 2000){
-    Serial.print("moved");
+
+  
+  //checks if sensor is minDist or less away from the ground, and if claw was not recently toggled
+  //also checks if claw has gone back up yet to prevent claw opening while ascending (in the second if statement)
+  if(distance < minDist && millis() - timeSinceToggle > 4000 && millis() - timeSinceUp > 2000 && alreadyUp == true){
+    //toggles servo between 180 and 0
     myServo.write(180 * (toggle % 2));
     timeSinceToggle = millis();
     toggle++;
@@ -44,7 +51,8 @@ void loop() {
     timeSinceUp = millis();
     alreadyUp = true;
   }
-  
+
+  //for debugging
   Serial.print("Distance: ");
   Serial.println(distance);
   
